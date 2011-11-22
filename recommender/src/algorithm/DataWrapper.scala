@@ -5,5 +5,5 @@ package algorithm
  */
 abstract class DataWrapper
 case class Ratings(list: List[(Int, Int)]) extends DataWrapper
-case class MeanAndRatings(mean: Double, ratings: List[(Int, Int)]) extends DataWrapper
+case class MeanAndRatings(mean: Double, ratings: List[(Int, Int)], favoriteItems: List[Int]) extends DataWrapper
 case class Similarities(list: List[(Int, Double)]) extends DataWrapper
