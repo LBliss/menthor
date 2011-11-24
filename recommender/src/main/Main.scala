@@ -27,17 +27,15 @@ import initialization._
  *  Our implementation of 2) is the first x substeps of the update method in RecommanderVertex
  */
 object Main {
-
   def main(args: Array[String]): Unit = {
-        val parsedData = Parser(new File("ratings.dat"))
-        val graph = GraphReader(parsedData)
-        println
-        GraphReader.printGraphSamples(graph, 200)
-        println
-        println
-        graph.start()
-        println("Started")
-        graph.iterate(10)
+    val parsedData = Parser(new File("ratings.dat"))
+    val graph = GraphReader(parsedData)
+    println
+    GraphReader.printGraphSamples(graph, 200)
+    println
+    println
+    graph.start()
+    println("Started")
+    graph.iterate(10)
   }
-
 }

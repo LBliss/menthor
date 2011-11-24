@@ -7,11 +7,11 @@ import scala.collection.mutable.HashMap
 
 /**
  * Object used to create and read a graph.
- * 
- * Input: 
+ *
+ * Input:
  * List[userID, List[(itemID, rating)]]
- * 
- * Output: 
+ *
+ * Output:
  * Graph[DataWrapper] with two types of nodes:
  * UserNode (label = userID, data = userRatings)
  * ItemNode (label = itemID, data = null)
@@ -20,41 +20,36 @@ import scala.collection.mutable.HashMap
 object GraphReader {
 
   def apply(data: List[(Int, List[(Int, Int)])]): Graph[DataWrapper] = {
-    
-	val time = System.currentTimeMillis()
-	
+
+    val time = System.currentTimeMillis()
+
     val graph = new Graph[DataWrapper]
+    // We use this to log the vertex creation in order to create each of them only once.
     val itemMap = new HashMap[Int, Vertex[DataWrapper]]()
 
-    for(userRatings <- data) {   
-      val userID = userRatings._1
-      val ratings = userRatings._2
+    for ((userID, ratings) <- data) {
       val userVertex = graph.addVertex(new UserVertex(userID, Ratings(ratings)))
-     
-      for(rating <- ratings) {
-        val itemID = rating._1
+      for ((itemID, _) <- ratings) {
         val itemVertex = itemMap.getOrElseUpdate(itemID, graph.addVertex(ItemVertex(itemID)))
-        
         userVertex.connectTo(itemVertex)
-        // itemVertex.connectTo(userVertex) // No need, we can use the source of the messages received to send back
       }
     }
     println("Time to draw the graph: " + (System.currentTimeMillis() - time) + "ms.")
     graph
     //TODO: Do we have to synchronized/terminate the graph as in the pagerank example ??
   }
-  
+
   def printGraph(graph: Graph[DataWrapper]) = {
     for (v <- graph.vertices) {
       println(v.label + ": " + v.value)
     }
   }
-  
+
   def printGraphSamples(graph: Graph[DataWrapper], n: Int) = {
     val skip = graph.vertices.length / n
     println(n + " samples of the graph: ")
-    for(i <- 0 until n) {
-      var vertex = graph.vertices.drop(i*skip).head
+    for (i <- 0 until n) {
+      var vertex = graph.vertices.drop(i * skip).head
       println(vertex.label + ": " + vertex.value)
     }
   }
