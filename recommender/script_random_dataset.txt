@@ -1,0 +1,6 @@
+for i in {1..100000}
+do
+echo $((RANDOM % 1000 + 1000)),$((RANDOM % 100 + 100)),$((RANDOM % 10)) >> output.tmp
+done
+sort output.tmp > output.dat
+rm output.tmp

@@ -1,7 +1,9 @@
 package main
 
-import java.io.File
 import initialization._
+import java.io.File
+import java.io.PrintStream
+import java.io.FileOutputStream
 
 /**
  * Algorithm:
@@ -28,14 +30,33 @@ import initialization._
  */
 object Main {
   def main(args: Array[String]): Unit = {
-    val parsedData = Parser(new File("ratings.dat"))
-    val graph = GraphReader(parsedData)
-    println
-    GraphReader.printGraphSamples(graph, 200)
-    println
-    println
-    graph.start()
-    println("Started")
-    graph.iterate(10)
+        println("Getting started !")
+//        makeDataset
+//        0 / 0 // XD
+        val parsedData = Parser(new File("dataset_mod5_150k_s.dat"))//dataset_mod3_63k.dat"))
+        val graph = GraphReader(parsedData)
+        GraphReader.printGraphSamples(graph, 20)
+        graph.start()
+        println("Started !")
+        val time = System.currentTimeMillis
+        graph.iterate(3)
+        graph.terminate()
+        import algorithm._
+        println("SubstepTwo, data handling: " + time_itemSubstepData)
+        println("SubstepTwo, pairwise similarity: " + time_itemSubstepSimilarity)
+        println("SubstepTwo, message preparation: " + time_itemSubstepMessages)
+        println("Total time of the algorithm: " + (System.currentTimeMillis - time) + "ms.")
+        println("Total of empty recommandations list: " + numberOfEmptyRecommandations)
+        println("DEBUG: count 2 and 3 : " + count2 + ":::" + count3)
+        println("Finished !")
+  }
+  
+  def makeDataset() {
+    val file = new File("dataset_mod5_1000k_s.dat")
+    file.createNewFile()
+    Console.setOut(new PrintStream(new FileOutputStream(file)))
+
+    val list = (1 to 1000000).map(x => ((math.random * 10000).toInt, (math.random * 20000).toInt)).toList.sortWith((x, y) => x._1 < y._1 || (x._1 == y._1 && x._2 < y._2)).distinct.map(x => (x._1, x._2, if(x._1 % 5 == x._2 % 5) (math.random * 5).toInt + 5 else (math.random * 5).toInt))
+    list.foreach(x => println(x._1 + "," + x._2 + "," + x._3))
   }
 }

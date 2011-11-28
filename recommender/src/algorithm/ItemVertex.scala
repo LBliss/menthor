@@ -5,92 +5,128 @@ import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 
 case class ItemVertex(itemID: ItemID) extends Vertex[DataWrapper]("Item #" + itemID, null) {
-  // Minimum number of ratings to take the similarity into account. MUST BE BIGGER THAN 0.
-  val THRESHOLD_nMinimumRatings = 5
 
   def update(): Substep[DataWrapper] = {
     {
       /*
-       * Nothing to do and no message to send
+       * Nothing to do and no message to send.
        */
       List()
     } then {
-      
-      // First element of the 2-tuple in the list is the weighted rating, second is userID to send back the results.
-      val gradesMap = new HashMap[ItemID, List[(User, WeightedGrade)]]
-      val selfRatingMap = new HashMap[User, WeightedGrade]
-      var interestedUsersMap = new HashMap[User, List[ItemID]]
+      startTimer // DEBUG
+      /*
+       * The big substep, three phases:
+       *  - First, we do some data handling (mostly filling hashmaps with data from the messages we received from the UserVertex).
+       *  - Then, we compute the pairwise similarity between this item and all the other that have an ID greater (because of the way we split the ratings).
+       *  - Finally, we prepare the messages for each user using their favoriteItems list to decide if they're interested by a specific similarity.
+       */
+      val otherGradesMap = new HashMap[ItemID, List[(User, WeightedGrade)]]
+      val selfGradesMap = new HashMap[User, WeightedGrade]
+      val favoriteItemsMap = new HashMap[User, List[ItemID]]
+      val selfFavoriteUserSet = new HashSet[User]
 
-      // Prepare the hashmaps with the data received via messages
+      /*
+       *  Prepare the hashmaps with the data received via messages.
+       */
       for (message <- incoming) {
         message.value match {
           case MeanAndRatings(mean, ratings, favoriteItems) => {
-            // The first rating is the rate of this itself.
-            val weightedRating = ratings.head._2 - mean
             val source = message.source
-            selfRatingMap.put(source, weightedRating)
+            // The first rating is the grade of this item because of the way we split the ratings.
+            val weightedGrade = ratings.head._2 - mean
+            selfGradesMap.put(source, weightedGrade)
 
-            // Take k the favorite items.
-            interestedUsersMap.put(source, favoriteItems)
+            favoriteItemsMap.put(source, favoriteItems)
+            if(favoriteItems.contains(itemID)) {
+              selfFavoriteUserSet.add(source)
+            }
 
-            // The other ratings are added 
+            // The other ratings are added to the otherGradesMap.
             for ((itemID, grade) <- ratings.tail) {
-              var entry = gradesMap.getOrElseUpdate(itemID, List())
+              var entry = otherGradesMap.getOrElseUpdate(itemID, List())
               entry ::= (source, grade - mean)
-              gradesMap.put(itemID, entry)
+              otherGradesMap.put(itemID, entry)
             }
           }
           case _ => sys.error("Internal error")
         }
       }
-
+      time_itemSubstepData += stopTimer // DEBUG
+      startTimer // DEBUG
       /*
-       * Magical formula :P
+       * Magical formula to compute the pairwise similarity :P
        * sum(r(i)*r(j) / sqrt(sum(r(i)^2) + sum(r(j)^2))
        */
-      val similarities: List[(ItemID, Similarity, List[User])] = 
-        (for ((otherItemID, ratings) <- gradesMap
-          if (ratings.length >= THRESHOLD_nMinimumRatings))
-          yield {
+      var result: Double = 0d
+      var sources: List[(User, WeightedGrade)] = List()
+      val similarities: List[(ItemID, Similarity, List[(User, WeightedGrade)])] =
+        (for (
+          (otherItemID, ratings) <- otherGradesMap if (ratings.length >= THRESHOLD_nMinimumRatings && {
             var num = 0d
             var de1 = 0d
             var de2 = 0d
-            val sources =
-              for ((source, otherGrade) <- ratings) yield {
-                val selfGrade = selfRatingMap.get(source).get
-                num += (otherGrade * selfGrade)
-                de1 += (otherGrade * otherGrade)
-                de2 += (selfGrade * selfGrade)
-                source // yield this !
+            sources =
+              for (
+                (source, otherGrade) <- ratings if {
+                  val selfGrade = selfGradesMap.get(source).get
+                  num += (otherGrade * selfGrade)
+                  de1 += (otherGrade * otherGrade)
+                  de2 += (selfGrade * selfGrade)
+                  favoriteItemsMap.get(source).get.contains(otherItemID)
+                }
+              ) yield {
+                (source, otherGrade) // yield this !
               }
-            val result = num / scala.math.sqrt(de1 + de2)
-            (otherItemID, result, sources) // yield this !
-          }
-        ).toList
-
-      val messagesMap = new HashMap[Vertex[DataWrapper], List[(Int, Double)]]
-      for ((otherItemID, similarity, destinations) <- similarities) {
-        for (destination <- destinations) {
-          val favoriteItems = interestedUsersMap.get(destination).get
-
-          // If the user (destination) is interested by the similarity, we send it with the value weighted (TODO: explain better)
-          if (favoriteItems.contains(itemID)) {
-            // The user is interested by items similar to this item
-            messagesMap.put(destination, (otherItemID, similarity * selfRatingMap.get(destination).get) :: messagesMap.getOrElseUpdate(destination, List()))
-          } else if (favoriteItems.contains(otherItemID)) {
-            // The user is interested by this item
-            messagesMap.put(destination, (itemID, similarity * selfRatingMap.get(destination).get) :: messagesMap.getOrElseUpdate(destination, List()))
-          }
-        }
-      }
+            result = num / scala.math.sqrt(de1 + de2)
+            result > THRESHOLD_minimalSimilarity
+          })
+        ) yield {
+          // println("Similarity between: " + itemID + " and " + otherItemID + " is: " + result) // DEBUG
+          (otherItemID, result, sources) // yield this !
+        }).toList
+      time_itemSubstepSimilarity += stopTimer // DEBUG
+      startTimer // DEBUG
       /*
-       * Send messages back with the similarity computed.
+       * We prepare the messages for each user.
+       * Important: As we compute later a weighted average, we weight the similarities right here to simplify things later.
        */
-      (for (entry <- messagesMap) yield Message(this, entry._1, Similarities(entry._2))).toList
+      val messagesMap = new HashMap[User, List[(ItemID, Similarity)]]
+      for ((otherItemID, similarity, destinations) <- similarities) {
+        if(itemID == 28 || otherItemID == 28) {
+          println("Similarity between: " + itemID + " and " + otherItemID + " is: " + similarity) // DEBUG
+        }
+    	  for(destination <- selfFavoriteUserSet) {
+    	    count2 += 1 // DEBUG
+    	    messagesMap.put(destination, (otherItemID, similarity * selfGradesMap.get(destination).get) :: messagesMap.getOrElseUpdate(destination, List()))
+    	  }
+    	  for((destination, otherItemGrade) <- destinations) {
+    	    count3 += 1 // DEBUG
+    	    messagesMap.put(destination, (itemID, similarity * otherItemGrade) :: messagesMap.getOrElseUpdate(destination, List()))
+    	  }
+//        val favoriteItems = favoriteItemsMap.get(destination).get
+//        // If the user (destination) is interested by this specific similarity, we add it to its message.
+//        if (favoriteItems.contains(itemID)) {
+//          // The user is interested by items similar to this item.
+//          // println(similarity + " :: " + selfGradesMap.get(destination).get + " :: " + itemID + " :: " + destination.asInstanceOf[UserVertex].userID + " :: " + favoriteItems) // DEBUG
+//          messagesMap.put(destination, (otherItemID, similarity * selfGradesMap.get(destination).get) :: messagesMap.getOrElseUpdate(destination, List()))
+//        } else if (favoriteItems.contains(otherItemID)) {
+//          // The user is interested by this item.
+//          messagesMap.put(destination, (itemID, similarity * otherItemGrade) :: messagesMap.getOrElseUpdate(destination, List()))
+//        }
+        
+      }
+      time_itemSubstepMessages += stopTimer // DEBUG
+      count += 1 // DEBUG
+      progression += (numberOfItems - itemID) // DEBUG
+      println((progression / (numberOfItems * (numberOfItems + 1)) * 200).round + " % - " + count + " of " + numberOfItems + " done. ItemID " + itemID + ".") // DEBUG
       
+      /*
+       * Send the messages.
+       */
+      (for ((destination, similarities) <- messagesMap) yield Message(this, destination, Similarities(similarities))).toList
     } then {
       /*
-       * Nothing to do and no message to send
+       * Nothing to do and no message to send.
        */
       List()
     }
