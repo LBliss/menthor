@@ -1,6 +1,7 @@
 package algorithm
 
 import menthor._
+
 import scala.collection.mutable.HashMap
 
 /**
@@ -16,7 +17,10 @@ case class UserVertex(val userID: UserID, var ratings: List[(ItemID, Grade)]) ex
 
     {
       favoriteItems = ratings.sortWith(_._2 > _._2).take(THRESHOLD_nFavoriteItems)
-      value = FavoriteMap(HashMap(favoriteItems.map(x => (x._1, List(this))) : _*))
+      if(userID == 1) 
+        value = FavoriteMap(HashMap(favoriteItems.map(x => (x._1, List(this))) : _*))
+      else
+        value = FavoriteMap(new HashMap[ItemID, List[User]])
       List()
     } crunch ((v1, v2) => {
       (v1, v2) match {
@@ -46,23 +50,45 @@ case class UserVertex(val userID: UserID, var ratings: List[(ItemID, Grade)]) ex
       /*
        * Nothing to do and no message to send.
        */
+      //value = Similarities(List())
+      value = Similarities(new HashMap[ItemID, List[(ItemID, Similarity)]])
+      
       List()
-    } then {
+    } crunch ((v1, v2) => {
+      (v1, v2) match {
+        //case (Similarities(list1), Similarities(list2)) => Similarities(list1 ::: list2)
+        case (Similarities(map1), Similarities(map2)) => Similarities(map1 ++ map2.map { case (k, v) => k -> (v ::: map1.getOrElse(k, List())) })
+      }
+    }) then {
       /*
        * Compute the top K recommendations using the weighted similarities that the ItemVertex send us back.
        */
       val similaritiesMap = new HashMap[ItemID, List[Similarity]]
-      val favoriteItemsMap = HashMap(favoriteItems: _*)
-      
-      for (message <- incoming) {
-        message.value match {
-          case Similarities(similarities) =>
-            for ((ratedItemID, itemID, similarity) <- similarities) {
-              val grade = favoriteItemsMap.get(ratedItemID).get
-              similaritiesMap.put(itemID, similarity * grade :: similaritiesMap.getOrElseUpdate(itemID, List()))
-            }
-          case _ => sys.error("Internal error")
-        }
+//      val favoriteItemsMap = HashMap(favoriteItems: _*)
+
+//      incoming.head.value match {
+//        case Similarities(similarities) =>
+//          for ((itemID1, itemID2, similarity) <- similarities) {
+//            var grade: Option[Grade] = favoriteItemsMap.get(itemID1)
+//            if (grade != None) {
+//              similaritiesMap.put(itemID2, similarity * grade.get :: similaritiesMap.getOrElseUpdate(itemID2, List()))
+//            } else {
+//              grade = favoriteItemsMap.get(itemID2)
+//              if (grade != None) {
+//                similaritiesMap.put(itemID1, similarity * grade.get :: similaritiesMap.getOrElseUpdate(itemID1, List()))
+//              }
+//            }
+//
+//          }
+//        case _ => sys.error("Internal error")
+//      }
+      incoming.head.value match {
+      	case Similarities(similarities) =>
+      	  for((itemID, grade) <- favoriteItems) {
+      	    for((itemID, similarity) <- similarities.get(itemID).getOrElse(List())) {
+      	      similaritiesMap.put(itemID, similarity * grade :: similaritiesMap.getOrElseUpdate(itemID, List()))
+      	    }
+      	  }
       }
 
       val similarities: List[(ItemID, Similarity)] =

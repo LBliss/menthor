@@ -1,4 +1,4 @@
-import menthor.Vertex
+import menthor._
 
 package object algorithm {
   // Typedef
@@ -24,14 +24,14 @@ package object algorithm {
   def stopTimer() = System.currentTimeMillis - temp_time
   
   // Number of items in each user that will be considered to find the recommended items.
-  val THRESHOLD_nFavoriteItems = 50
+  val THRESHOLD_nFavoriteItems = 10
   // Number of item in the favoriteItems list that a recommended item must be similar to.
   val THRESHOLD_nSimilarRequired = 1
   // Minimum number of ratings to take the similarity into account. MUST BE BIGGER THAN 0.
   val THRESHOLD_nMinimumRatings = 1
   // Minimum similarity that two items have to be taken into account. Should be 0 or bigger.
   // Note that max is maxGrade/sqrt(2), as we weight the grade, the max will likely be near 3 for grade from 0 to 9.
-  val THRESHOLD_minimalSimilarity = 0.0
+  val THRESHOLD_minimalSimilarity = 2.0
   // Number of recommended item that we want
   val TOP_K = 10
   // To know if we have to sort the ratings

@@ -1,6 +1,7 @@
 package algorithm
 
 import menthor._
+
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 
@@ -64,7 +65,7 @@ case class ItemVertex(itemID: ItemID) extends Vertex[DataWrapper]("i" + itemID, 
        * sum(r(i)*r(j) / sqrt(sum(r(i)^2) + sum(r(j)^2))
        */
       var result: Double = 0d
-      val similarities: List[(ItemID, Similarity)] = (
+      /*value*/ val similarities = /*Similarities*/((
         for (
           (otherItemID, ratings) <- otherGradesMap if (ratings.length >= THRESHOLD_nMinimumRatings && {
             var num = 0d
@@ -79,42 +80,38 @@ case class ItemVertex(itemID: ItemID) extends Vertex[DataWrapper]("i" + itemID, 
             result = num / scala.math.sqrt(de1 + de2)
             result > THRESHOLD_minimalSimilarity
           })
-        ) yield (otherItemID, result)).toList
+        ) yield (itemID, otherItemID, result)).toList)
 
       // println("Similarity between: " + itemID + " and " + otherItemID + " is: " + result) // DEBUG
       time_itemSubstepSimilarity += stopTimer // DEBUG
       startTimer // DEBUG
 
+      val map = new HashMap[ItemID, List[(ItemID, Similarity)]]
+      
+      for ((itemID1, itemID2, sim) <- similarities) {
+        map.put(itemID1, (itemID2, sim) :: map.get(itemID1).getOrElse(List()))
+        map.put(itemID2, (itemID1, sim) :: map.get(itemID2).getOrElse(List()))
+      }
+      
+      value = Similarities(map)
+      
       /*
        * We prepare the messages for each user.
        * Important: As we compute later a weighted average, we weight the similarities right here to simplify things later.
        */
-      val messagesMap = new HashMap[User, List[(ItemID, ItemID, Similarity)]]
-      val favoriteItemsMap = value.asInstanceOf[FavoriteMap].map
-      val selfFavoriteUserSet = favoriteItemsMap.get(itemID).get
-      value = null
-      
-      for ((otherItemID, similarity) <- similarities) {
-        // The user is interested by items similar to this item.
-        for (destination <- selfFavoriteUserSet) {
-          messagesMap.put(destination, (itemID, otherItemID, similarity) :: messagesMap.getOrElseUpdate(destination, List()))
-        }
-        // The user is interested by this item.
-        for (destination <- favoriteItemsMap.get(otherItemID).get) {
-          messagesMap.put(destination, (otherItemID, itemID, similarity) :: messagesMap.getOrElseUpdate(destination, List()))
-        }
-      }
 
       time_itemSubstepMessages += stopTimer // DEBUG
       count += 1 // DEBUG
       progression += (numberOfItems - itemID) // DEBUG
       println((progression / (numberOfItems * (numberOfItems + 1)) * 200).round + " % - " + count + " of " + numberOfItems + " done. ItemID " + itemID + ".") // DEBUG
 
-      /*
-       * Send the messages.
-       */
-      (for ((destination, similarities) <- messagesMap) yield Message(this, destination, Similarities(similarities))).toList
-    } then {
+      List()
+    } crunch ((v1, v2) => {
+      (v1, v2) match {
+        /*case (Similarities(list1), Similarities(list2)) => Similarities(list1:::list2)*/
+        case (Similarities(map1), Similarities(map2)) => Similarities(map1 ++ map2.map { case (k, v) => k -> (v ::: map1.getOrElse(k, List())) })
+      }
+    }) then {
       /*
        * Nothing to do and no message to send.
        */

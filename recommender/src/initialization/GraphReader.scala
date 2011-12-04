@@ -1,8 +1,8 @@
 package initialization
 
+import menthor._
+
 import algorithm._
-import menthor.Graph
-import menthor.Vertex
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 
