@@ -36,7 +36,7 @@ object GraphReader {
     var userList: HashSet[UserVertex] = new HashSet[UserVertex]
     
     for ((userID, ratings) <- data) {
-      val userVertex = UserVertex(userID, Ratings(ratings))
+      val userVertex = UserVertex(userID, ratings)
       userList.addEntry(userVertex)
       for ((itemID, _) <- ratings) {
         val itemVertex = itemMap.getOrElseUpdate(itemID, ItemVertex(itemID))
@@ -66,7 +66,7 @@ object GraphReader {
 
   def printGraph(graph: Graph[DataWrapper]) = {
     for (v <- graph.vertices) {
-      println(v.label + ": " + v.value)
+      println(v.label)
     }
   }
 
@@ -75,7 +75,7 @@ object GraphReader {
     println(n + " samples of the graph: ")
     for (i <- 0 until n) {
       var vertex = graph.vertices.drop(i * skip).head
-      println(vertex.label + ": " + vertex.value)
+      println(vertex.label)
     }
   }
 }

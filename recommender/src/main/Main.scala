@@ -33,13 +33,13 @@ object Main {
         println("Getting started !")
 //        makeDataset
 //        0 / 0 // XD
-        val parsedData = Parser(new File("dataset_mod5_150k_s.dat"))//dataset_mod3_63k.dat"))
+        val parsedData = Parser(new File("dataset_mod5_150k.dat"))
         val graph = GraphReader(parsedData)
         GraphReader.printGraphSamples(graph, 20)
         graph.start()
         println("Started !")
         val time = System.currentTimeMillis
-        graph.iterate(3)
+        graph.iterate(5)
         graph.terminate()
         import algorithm._
         println("SubstepTwo, data handling: " + time_itemSubstepData)
@@ -47,7 +47,6 @@ object Main {
         println("SubstepTwo, message preparation: " + time_itemSubstepMessages)
         println("Total time of the algorithm: " + (System.currentTimeMillis - time) + "ms.")
         println("Total of empty recommandations list: " + numberOfEmptyRecommandations)
-        println("DEBUG: count 2 and 3 : " + count2 + ":::" + count3)
         println("Finished !")
   }
   
