@@ -16,18 +16,8 @@ case class UserVertex(val userID: UserID, var ratings: List[(ItemID, Grade)]) ex
     var favoriteItems: List[(ItemID, Grade)] = null
 
     {
-      favoriteItems = ratings.sortWith(_._2 > _._2).take(THRESHOLD_nFavoriteItems)
-      if(userID == 1) 
-        value = FavoriteMap(HashMap(favoriteItems.map(x => (x._1, List(this))) : _*))
-      else
-        value = FavoriteMap(new HashMap[ItemID, List[User]])
-      List()
-    } crunch ((v1, v2) => {
-      (v1, v2) match {
-        case (FavoriteMap(map1), FavoriteMap(map2)) => FavoriteMap(map1 ++ map2.map{ case (k,v) => k -> (v ::: map1.getOrElse(k,List()))})
-        case _ => sys.error("Internal error")
-        }
-    }) then {
+      count2+=1;
+      println(count2);
       /*
        * Compute the mean of the ratings to normalize the grades.
        * Also compute the favoriteItems list to reduce the amount of messages which are later send back by the ItemVertex.
@@ -36,7 +26,9 @@ case class UserVertex(val userID: UserID, var ratings: List[(ItemID, Grade)]) ex
       if (!DATA_SORTED) {
         ratings = ratings.sortWith(_._1 < _._1)
       }
-
+      
+      favoriteItems = ratings.sortWith(_._2 > _._2).take(THRESHOLD_nFavoriteItems)
+      
       val mean = ratings.map(_._2).reduce(_ + _) / ratings.length.toDouble
 
       // The neighbors are all the ItemVertex that this user graded.
@@ -50,9 +42,7 @@ case class UserVertex(val userID: UserID, var ratings: List[(ItemID, Grade)]) ex
       /*
        * Nothing to do and no message to send.
        */
-      //value = Similarities(List())
       value = Similarities(new HashMap[ItemID, List[(ItemID, Similarity)]])
-      
       List()
     } crunch ((v1, v2) => {
       (v1, v2) match {
@@ -64,24 +54,6 @@ case class UserVertex(val userID: UserID, var ratings: List[(ItemID, Grade)]) ex
        * Compute the top K recommendations using the weighted similarities that the ItemVertex send us back.
        */
       val similaritiesMap = new HashMap[ItemID, List[Similarity]]
-//      val favoriteItemsMap = HashMap(favoriteItems: _*)
-
-//      incoming.head.value match {
-//        case Similarities(similarities) =>
-//          for ((itemID1, itemID2, similarity) <- similarities) {
-//            var grade: Option[Grade] = favoriteItemsMap.get(itemID1)
-//            if (grade != None) {
-//              similaritiesMap.put(itemID2, similarity * grade.get :: similaritiesMap.getOrElseUpdate(itemID2, List()))
-//            } else {
-//              grade = favoriteItemsMap.get(itemID2)
-//              if (grade != None) {
-//                similaritiesMap.put(itemID1, similarity * grade.get :: similaritiesMap.getOrElseUpdate(itemID1, List()))
-//              }
-//            }
-//
-//          }
-//        case _ => sys.error("Internal error")
-//      }
       incoming.head.value match {
       	case Similarities(similarities) =>
       	  for((itemID, grade) <- favoriteItems) {

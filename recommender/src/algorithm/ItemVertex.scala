@@ -10,19 +10,8 @@ case class ItemVertex(itemID: ItemID) extends Vertex[DataWrapper]("i" + itemID, 
   def update(): Substep[DataWrapper] = {
     {
       /*
-       * Initialize "value" for the crunch and no message to send.
-       */
-      value = FavoriteMap(new HashMap[ItemID, List[User]])
-      List()
-    } crunch ((v1, v2) => {
-      (v1, v2) match {
-        case (FavoriteMap(map1), FavoriteMap(map2)) => FavoriteMap(map1 ++ map2.map { case (k, v) => k -> (v ::: map1.getOrElse(k, List())) })
-      }
-    }) then {
-      /*
        * Store the "FavoriteItemsMap" in "value" and no message to send.
        */
-      value = incoming.head.value
       List()
     } then {
       startTimer // DEBUG

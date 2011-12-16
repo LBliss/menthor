@@ -11,8 +11,9 @@ package object algorithm {
   
   // Used to measure the progression of the algorithm.
   var count = 0
+  var count2 = 0
   var progression = 0d
-  val numberOfItems = 250
+  val numberOfItems = 1000
   var numberOfEmptyRecommandations = 0
   
   // Used to do some basic time measurement

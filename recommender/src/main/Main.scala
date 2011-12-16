@@ -36,15 +36,15 @@ object Main {
 //        makeDataset
 //        0 / 0 // XD
         println("sleepy");
-        Thread.sleep(10000)
+        Thread.sleep(3000)
         println("notanymore!");
-        val parsedData = Parser(new File("dataset_mod5_600k.dat"))
+        val parsedData = Parser(new File("dataset_mod5_1000k.dat"))
         val graph = GraphReader(parsedData)
         GraphReader.printGraphSamples(graph, 20)
         graph.start()
         println("Started !")
         val time = System.currentTimeMillis
-        graph.iterate(6)
+        graph.iterate(4)
         graph.terminate()
         println("SubstepTwo, data handling: " + time_itemSubstepData)
         println("SubstepTwo, pairwise similarity: " + time_itemSubstepSimilarity)
@@ -55,11 +55,11 @@ object Main {
   }
   
   def makeDataset() {
-    val file = new File("dataset_mod5_600k.dat")
+    val file = new File("dataset_mod5_6000k.dat")
     file.createNewFile()
     Console.setOut(new PrintStream(new FileOutputStream(file)))
 
-    val list = (1 to 600000).map(x => ((math.random * 10000).toInt, (math.random * 3000).toInt)).toList.sortWith((x, y) => x._1 < y._1 || (x._1 == y._1 && x._2 < y._2)).distinct.map(x => (x._1, x._2, if(x._1 % 5 == x._2 % 5) (math.random * 5).toInt + 5 else (math.random * 5).toInt))
+    val list = (1 to 3000000).map(x => ((math.random * 50000).toInt, (math.random * 1000).toInt)).toList.sortWith((x, y) => x._1 < y._1 || (x._1 == y._1 && x._2 < y._2)).distinct.map(x => (x._1, x._2, if(x._1 % 5 == x._2 % 5) (math.random * 5).toInt + 5 else (math.random * 5).toInt))
     list.foreach(x => println(x._1 + "," + x._2 + "," + x._3))
   }
 }
