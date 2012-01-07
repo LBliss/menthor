@@ -39,7 +39,7 @@ object Main {
 //        Thread.sleep(3000)
 //        println("notanymore!");
 //        val parsedData = Parser(new File("dataset_test1.dat"))
-        val parsedData = Parser(new File("dataset_mod5_342k.dat"))
+        val parsedData = Parser(new File("dataset_mod5_1000k.dat"))
         val graph = GraphReader(parsedData)
 //        GraphReader.printGraph(graph)
         graph.start()
