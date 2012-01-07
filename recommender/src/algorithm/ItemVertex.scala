@@ -10,17 +10,17 @@ case class ItemVertex(itemID: ItemID) extends Vertex[DataWrapper]("i" + itemID, 
   def update(): Substep[DataWrapper] = {
     {
       /*
-       * Store the "FavoriteItemsMap" in "value" and no message to send.
+       * Nothing to do and no message to send.
        */
       List()
     } then {
-      startTimer // DEBUG
+      startTimer // Time measurement.
 
       /*
-       * The big substep, three phases:
+       * The most important substep, two phases:
        *  - First, we do some data handling (mostly filling hashmaps with data from the messages we received from the UserVertex).
        *  - Then, we compute the pairwise similarity between this item and all the other that have an ID greater (because of the way we split the ratings).
-       *  - Finally, we prepare the messages for each user using their favoriteItems list to decide if they're interested by a specific similarity.
+       *    and we store them in this.value in order to use them later in a crunch (reduce).
        */
       val otherGradesMap = new HashMap[ItemID, List[(User, WeightedGrade)]]
       val selfGradesMap = new HashMap[User, WeightedGrade]
@@ -28,7 +28,6 @@ case class ItemVertex(itemID: ItemID) extends Vertex[DataWrapper]("i" + itemID, 
       /*
        *  Prepare the hashmaps with the data received via messages.
        */
-
       for (message <- incoming) {
         message.value match {
           case MeanAndRatings(mean, ratings) => {
@@ -47,14 +46,15 @@ case class ItemVertex(itemID: ItemID) extends Vertex[DataWrapper]("i" + itemID, 
           case _ => sys.error("Internal error")
         }
       }
-      time_itemSubstepData += stopTimer // DEBUG
-      startTimer // DEBUG
+      time_itemSubstepData += stopTimer // Time measurement.
+      startTimer // Time measurement.
+
       /*
-       * Magical formula to compute the pairwise similarity :P
+       * Formula used to compute the pairwise similarity.
        * sum(r(i)*r(j) / sqrt(sum(r(i)^2) + sum(r(j)^2))
        */
       var result: Double = 0d
-      /*value*/ val similarities = /*Similarities*/((
+      val similarities: List[(ItemID, Double)] = ((
         for (
           (otherItemID, ratings) <- otherGradesMap if (ratings.length >= THRESHOLD_nMinimumRatings && {
             var num = 0d
@@ -66,43 +66,43 @@ case class ItemVertex(itemID: ItemID) extends Vertex[DataWrapper]("i" + itemID, 
               de1 += (otherGrade * otherGrade)
               de2 += (selfGrade * selfGrade)
             }
-            result = num / scala.math.sqrt(de1 + de2)
+            result = num / (math.sqrt(de1) * math.sqrt(de2))
             result > THRESHOLD_minimalSimilarity
           })
-        ) yield (itemID, otherItemID, result)).toList)
+        ) yield (otherItemID, result)).toList)
 
       // println("Similarity between: " + itemID + " and " + otherItemID + " is: " + result) // DEBUG
-      time_itemSubstepSimilarity += stopTimer // DEBUG
-      startTimer // DEBUG
 
       val map = new HashMap[ItemID, List[(ItemID, Similarity)]]
-      
-      for ((itemID1, itemID2, sim) <- similarities) {
-        map.put(itemID1, (itemID2, sim) :: map.get(itemID1).getOrElse(List()))
-        map.put(itemID2, (itemID1, sim) :: map.get(itemID2).getOrElse(List()))
+
+      for ((otherItemID, sim) <- similarities) {
+        map.put(itemID, (otherItemID, sim) :: map.get(itemID).getOrElse(List()))
+        map.put(otherItemID, (itemID, sim) :: map.get(otherItemID).getOrElse(List()))
       }
-      
-      value = Similarities(map)
-      
+
       /*
-       * We prepare the messages for each user.
-       * Important: As we compute later a weighted average, we weight the similarities right here to simplify things later.
+       * We store the similarities.
        */
+      value = Similarities(map)
 
-      time_itemSubstepMessages += stopTimer // DEBUG
-      count += 1 // DEBUG
-      progression += (numberOfItems - itemID) // DEBUG
-      println((progression / (numberOfItems * (numberOfItems + 1)) * 200).round + " % - " + count + " of " + numberOfItems + " done. ItemID " + itemID + ".") // DEBUG
+      time_itemSubstepSimilarity += stopTimer // Time measurement.
+      
+      count += 1 // Progress measurement.
+      progression += (numberOfItems - itemID) // Progress measurement.
+      println((progression / (numberOfItems * (numberOfItems + 1)) * 200).round + " % - " + count + " of " + numberOfItems + " done. ItemID " + itemID + ".") // Progress measurement.
 
+      /*
+       * No message to send.
+       */
       List()
     } crunch ((v1, v2) => {
       (v1, v2) match {
-        /*case (Similarities(list1), Similarities(list2)) => Similarities(list1:::list2)*/
         case (Similarities(map1), Similarities(map2)) => Similarities(map1 ++ map2.map { case (k, v) => k -> (v ::: map1.getOrElse(k, List())) })
       }
     }) then {
+      value = null
       /*
-       * Nothing to do and no message to send.
+       * No message to send.
        */
       List()
     }

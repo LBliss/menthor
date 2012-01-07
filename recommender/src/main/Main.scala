@@ -38,9 +38,10 @@ object Main {
         println("sleepy");
         Thread.sleep(3000)
         println("notanymore!");
-        val parsedData = Parser(new File("dataset_mod5_1000k.dat"))
+//        val parsedData = Parser(new File("dataset_test1.dat"))
+        val parsedData = Parser(new File("dataset_mod5_342k.dat"))
         val graph = GraphReader(parsedData)
-        GraphReader.printGraphSamples(graph, 20)
+        GraphReader.printGraph(graph)
         graph.start()
         println("Started !")
         val time = System.currentTimeMillis
@@ -48,7 +49,6 @@ object Main {
         graph.terminate()
         println("SubstepTwo, data handling: " + time_itemSubstepData)
         println("SubstepTwo, pairwise similarity: " + time_itemSubstepSimilarity)
-        println("SubstepTwo, message preparation: " + time_itemSubstepMessages)
         println("Total time of the algorithm: " + (System.currentTimeMillis - time) + "ms.")
         println("Total of empty recommandations list: " + numberOfEmptyRecommandations)
         println("Finished !")
