@@ -50,15 +50,16 @@ case class UserVertex(val userID: UserID, var ratings: List[(ItemID, Grade)]) ex
       
       favoriteItems = favoriteItems.sortWith(_._2 > _._2).take(THRESHOLD_nFavoriteItems)
       
-      val similaritiesMap = new HashMap[ItemID, List[Similarity]]
-      val similaritiesMap2 = new HashMap[ItemID, List[Similarity]]
+      val similaritiesMap = new HashMap[ItemID, List[(Similarity, Similarity)]]
       
       incoming.head.value match {
       	case Similarities(similarities) =>
+      	  val ratedItems = ratings.map(_._1)
       	  for((itemID, grade) <- favoriteItems) {
             for((itemID, similarity) <- similarities.get(itemID).getOrElse(List())) {
-              similaritiesMap.put(itemID, similarity * grade :: similaritiesMap.getOrElseUpdate(itemID, List()))
-              similaritiesMap2.put(itemID, (if(similarity > 0) similarity else -similarity) :: similaritiesMap2.getOrElseUpdate(itemID, List()))
+              if(!ratedItems.contains(itemID)) {
+                similaritiesMap.put(itemID, (similarity * grade, (if(similarity > 0) similarity else -similarity)) :: similaritiesMap.getOrElseUpdate(itemID, List()))
+              }
             }
       	  }
       }
@@ -66,15 +67,19 @@ case class UserVertex(val userID: UserID, var ratings: List[(ItemID, Grade)]) ex
       val recommendations: List[(ItemID, Similarity)] = (
         for (
           (itemID, similarities) <- similaritiesMap.toList if (similarities.size >= THRESHOLD_nSimilarRequired)
-        ) yield (itemID, similarities.reduce(_ + _) / similaritiesMap2.get(itemID).get.reduce(_ + _)))
+        ) yield {
+          val tuple = similarities.reduce((x, y) => (x._1 + y._1, x._2 + y._2))
+          (itemID, tuple._1 / tuple._2)
+          })
 
       val finalTopK = recommendations.sortWith(_._2 > _._2).take(TOP_K)//.map(_._1)
 
-      if (finalTopK.isEmpty) {
-        numberOfEmptyRecommandations += 1
-      } else {
-       // println("TOP K of " + userID + " is : " + finalTopK)
-      }
+//      if (finalTopK.isEmpty) {
+//        numberOfEmptyRecommandations += 1
+      
+//      } else {
+//        // println("TOP K of " + userID + " is : " + finalTopK)
+//      }
 
       List() // No outgoing messages.
     }

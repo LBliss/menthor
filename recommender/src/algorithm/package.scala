@@ -10,17 +10,17 @@ package object algorithm {
   type User = Vertex[DataWrapper]
   
   // Used to measure the progression of the algorithm.
-  var count = 0
-  var progression = 0d
-  val numberOfItems = 1000
-  var numberOfEmptyRecommandations = 0
+//  var count = 0
+//  var progression = 0d
+//  val numberOfItems = 1000
+//  var numberOfEmptyRecommandations = 0
   
   // Used to do some time measurement.
-  var time_itemSubstepData = 0l
-  var time_itemSubstepSimilarity = 0l
-  private var temp_time = 0l
-  def startTimer() = temp_time = System.currentTimeMillis
-  def stopTimer() = System.currentTimeMillis - temp_time
+//  var time_itemSubstepData = 0l
+//  var time_itemSubstepSimilarity = 0l
+//  private var temp_time = 0l
+//  def startTimer() = temp_time = System.currentTimeMillis
+//  def stopTimer() = System.currentTimeMillis - temp_time
   
   // Number of items in each user that will be considered to find the recommended items.
   val THRESHOLD_nFavoriteItems = 10000
