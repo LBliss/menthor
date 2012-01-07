@@ -47,8 +47,8 @@ object Main {
         val time = System.currentTimeMillis
         graph.iterate(4)
         graph.terminate()
-        println("SubstepTwo, data handling: " + time_itemSubstepData)
-        println("SubstepTwo, pairwise similarity: " + time_itemSubstepSimilarity)
+//        println("SubstepTwo, data handling: " + time_itemSubstepData)
+//        println("SubstepTwo, pairwise similarity: " + time_itemSubstepSimilarity)
         println("Total time of the algorithm: " + (System.currentTimeMillis - time) + "ms.")
 //        println("Total of empty recommandations list: " + numberOfEmptyRecommandations)
         println("Finished !")
