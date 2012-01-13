@@ -14,7 +14,7 @@ case class ItemVertex(itemID: ItemID) extends Vertex[DataWrapper]("i" + itemID, 
        */
       List()
     } then {
-      startTimer // Time measurement.
+      val tmp = System.currentTimeMillis // Time measurement.
 
       /*
        * The most important substep, two phases:
@@ -85,7 +85,7 @@ case class ItemVertex(itemID: ItemID) extends Vertex[DataWrapper]("i" + itemID, 
        */
       value = Similarities(map)
 
-      time_itemSubstepSimilarity += stopTimer // Time measurement.
+      time_itemSubstepSimilarity += (System.currentTimeMillis - tmp) // Time measurement.
 //      
 //      count += 1 // Progress measurement.
 //      progression += (numberOfItems - itemID) // Progress measurement.

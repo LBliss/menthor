@@ -48,7 +48,7 @@ case class UserVertex(val userID: UserID, var ratings: List[(ItemID, Grade)]) ex
        * Compute the top K recommendations using the similarities reduced.
        */
       
-      startTimer // Time measurement.
+      val tmp = System.currentTimeMillis // Time measurement.
       
       favoriteItems = favoriteItems.sortWith(_._2 > _._2).take(THRESHOLD_nFavoriteItems)
       
@@ -82,7 +82,7 @@ case class UserVertex(val userID: UserID, var ratings: List[(ItemID, Grade)]) ex
 //      } else {
 //        // println("TOP K of " + userID + " is : " + finalTopK)
 //      }
-      time_itemSubstepData += stopTimer // Time measurement.
+      time_itemSubstepData += (System.currentTimeMillis - tmp) // Time measurement.
 
       List() // No outgoing messages.
     }
