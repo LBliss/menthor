@@ -1,0 +1,28 @@
+package ch.epfl.sweng.recommender.tests;
+
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
+import ch.epfl.sweng.recommender.RecommenderAlgorithm;
+import ch.epfl.sweng.recommender.algorithm.ParallelUserSimilarityAlgorithm;
+import ch.epfl.sweng.recommender.movie.MovieRecommenderSystem;
+
+public class ParallelUserPerf1m {
+    @Test
+    public void test() {
+    	MovieRecommenderSystem movieRecSys = new MovieRecommenderSystem();
+    	boolean success = movieRecSys.readData("movielens/1m/users.dat",
+    			"movielens/1m/movies.dat", "movielens/1m/ratings.dat");
+    	
+    	assertTrue(success);
+    	
+    	// using the default constructor
+    	RecommenderAlgorithm knnAlgo = new ParallelUserSimilarityAlgorithm();
+    	movieRecSys.addAlgorithm(knnAlgo);
+    	
+    	movieRecSys.update();
+
+    	movieRecSys.getRecommendations(movieRecSys.getUserById(1), knnAlgo);
+    }
+}

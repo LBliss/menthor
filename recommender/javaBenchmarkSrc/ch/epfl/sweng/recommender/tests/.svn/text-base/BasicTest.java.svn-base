@@ -1,0 +1,66 @@
+package ch.epfl.sweng.recommender.tests;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Set;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import ch.epfl.sweng.recommender.Recommendation;
+import ch.epfl.sweng.recommender.RecommenderAlgorithm;
+import ch.epfl.sweng.recommender.RecommenderSystem;
+import ch.epfl.sweng.recommender.User;
+import ch.epfl.sweng.recommender.algorithm.UserSimilarityAlgorithm;
+import ch.epfl.sweng.recommender.movie.MovieRecommenderSystem;
+
+/**
+ * Simple basic test for ranges.
+ */
+public class BasicTest {
+    private RecommenderSystem movieRecSys;
+    private RecommenderAlgorithm knnAlgo;
+    private static final int NUMBER_OF_EXPECTED_USERS = 3;
+    private static final int MAX_RECOMMANDATION = 5;
+    private static final int MIN_RECOMMENDATION = 0;
+
+    /**
+     * Setup.
+     * @throws Exception - in case of failure during initialization.
+     */
+    @Before
+    public void setUp() throws Exception {
+
+        movieRecSys = new MovieRecommenderSystem();
+        boolean success = movieRecSys.readData("basic/users1.dat",
+                "basic/movies1.dat", "basic/ratings1.dat");
+
+        assertTrue(success);
+
+        knnAlgo = new UserSimilarityAlgorithm();
+        movieRecSys.addAlgorithm(knnAlgo);
+
+        movieRecSys.update();
+    }
+
+    /**
+     * Range test for all recommendations.
+     */
+    @Test
+    public void test() {
+        for (int i = 1; i < NUMBER_OF_EXPECTED_USERS + 1; i++) {
+            User u = movieRecSys.getUserById(i);
+            assertNotNull(u);
+            Set<Recommendation> recommendations = movieRecSys
+                    .getRecommendations(u, knnAlgo);
+            assertNotNull(recommendations);
+            assertTrue(recommendations.size() != 0);
+            for (Recommendation recommendation : recommendations) {
+                System.out.println("rec " + recommendation);
+                assertTrue(recommendation.getRating() >= MIN_RECOMMENDATION);
+                assertTrue(recommendation.getRating() <= MAX_RECOMMANDATION);
+            }
+        }
+    }
+}

@@ -1,0 +1,22 @@
+package ch.epfl.sweng.recommender.tests;
+
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
+/**
+ * Test suite - use this to run all tests.
+ */
+@RunWith(Suite.class)
+@SuiteClasses({
+	UserPerf100k.class,
+	ParallelUserPerf100k.class,
+	ItemPerf100k.class,
+	ParallelItemPerf100k.class,
+    UserPerf1m.class,
+	ParallelUserPerf1m.class,
+    ItemPerf1m.class,
+	ParallelItemPerf1m.class,
+    })
+public class AllPerfTests {
+
+}

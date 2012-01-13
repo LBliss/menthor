@@ -1,0 +1,33 @@
+package ch.epfl.sweng.recommender.tests;
+
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
+import ch.epfl.sweng.recommender.Recommendation;
+import ch.epfl.sweng.recommender.RecommenderAlgorithm;
+import ch.epfl.sweng.recommender.algorithm.UserSimilarityAlgorithm;
+import ch.epfl.sweng.recommender.movie.MovieRecommenderSystem;
+
+public class UserPerf100k {
+    @Test
+    public void test() {
+    	long start = System.currentTimeMillis();
+    	MovieRecommenderSystem movieRecSys = new MovieRecommenderSystem();
+    	boolean success = movieRecSys.readData("movielens/100k/users.dat",
+    			"movielens/100k/movies.dat", "movielens/100k/ratings.dat");
+    	
+    	assertTrue(success);
+    	
+    	// using the default constructor
+    	RecommenderAlgorithm knnAlgo = new UserSimilarityAlgorithm();
+    	movieRecSys.addAlgorithm(knnAlgo);
+    	
+    	movieRecSys.update();
+
+    	for (Recommendation r : movieRecSys.getRecommendations(movieRecSys.getUserById(35), knnAlgo)) {
+			System.out.println(r);
+		}
+    	assertTrue(System.currentTimeMillis() - start < 60 * 1000);
+    }
+}
