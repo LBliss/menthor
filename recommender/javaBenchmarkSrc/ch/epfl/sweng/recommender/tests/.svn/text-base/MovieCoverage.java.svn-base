@@ -1,0 +1,35 @@
+package ch.epfl.sweng.recommender.tests;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import org.junit.Test;
+
+import ch.epfl.sweng.recommender.User;
+import ch.epfl.sweng.recommender.movie.Movie;
+import ch.epfl.sweng.recommender.movie.MovieUser;
+
+
+public class MovieCoverage {
+   @Test
+    public void test() {
+    	try {
+    		new Movie(0, "", "");
+    		fail();
+    	} catch(IllegalArgumentException e) {}
+    	Movie m = new Movie(1, "title", "");
+    	assertTrue(m.getId() == 1);
+    	User u = new MovieUser(2);
+    	assertTrue(m.getAverageRating() == 0);
+    	assertTrue(m.getRatingUsers().size() == 0);
+    	m.addUserRating(u, 3);
+    	assertTrue(m.getRating(u).getRating() == 3);
+    	assertTrue(m.getRating(new MovieUser(10)) == null);
+    	assertTrue(m.getAverageRating() == 3);
+    	assertTrue(m.getRatingUsers().size() == 1);
+    	assertTrue(m.getRatingUsers().iterator().next() == u);
+    	m.addUserRating(new MovieUser(11), 4);
+    	assertTrue(m.getAverageRating() == 3.5);
+    	System.out.println(m);
+    }
+}

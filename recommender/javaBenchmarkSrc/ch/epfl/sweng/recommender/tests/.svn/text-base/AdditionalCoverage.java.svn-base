@@ -1,0 +1,26 @@
+package ch.epfl.sweng.recommender.tests;
+
+import static org.junit.Assert.assertTrue;
+
+import java.util.Collection;
+
+import org.junit.Test;
+
+import ch.epfl.sweng.recommender.Item;
+import ch.epfl.sweng.recommender.algorithm.ItemSimilarityAlgorithm;
+import ch.epfl.sweng.recommender.algorithm.UserSimilarityAlgorithm;
+import ch.epfl.sweng.recommender.movie.MovieRecommenderSystem;
+import ch.epfl.sweng.recommender.movie.MovieUser;
+
+public class AdditionalCoverage {
+    @Test
+    public void test() {
+	    assertTrue(new MovieRecommenderSystem().getNextUserId() > 0);
+	    assertTrue(new MovieRecommenderSystem().getItems() != null);
+	    assertTrue(new MovieRecommenderSystem().auditErrors() == 0);
+		assertTrue(new UserSimilarityAlgorithm().auditErrors() == 0);
+		assertTrue(new ItemSimilarityAlgorithm().auditErrors() == 0);
+		assertTrue(new UserSimilarityAlgorithm().computeRecommendations(new MovieUser(123)).isEmpty());
+		assertTrue(new ItemSimilarityAlgorithm().computeRecommendations(new MovieUser(123)).isEmpty());
+    }
+}

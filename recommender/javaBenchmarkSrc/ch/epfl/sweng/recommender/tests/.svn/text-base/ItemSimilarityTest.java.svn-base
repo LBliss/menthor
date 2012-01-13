@@ -1,0 +1,75 @@
+package ch.epfl.sweng.recommender.tests;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Set;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import ch.epfl.sweng.recommender.Recommendation;
+import ch.epfl.sweng.recommender.RecommenderAlgorithm;
+import ch.epfl.sweng.recommender.RecommenderSystem;
+import ch.epfl.sweng.recommender.User;
+import ch.epfl.sweng.recommender.algorithm.ItemSimilarityAlgorithm;
+import ch.epfl.sweng.recommender.movie.MovieRecommenderSystem;
+
+/**
+ * Test for a movie recommender system using the item similarity algorithm.
+ */
+public class ItemSimilarityTest {
+    private RecommenderSystem movieRecSys;
+    private RecommenderAlgorithm itemSimilarityAlgorithm;
+    private static final int NUMBER_OF_EXPECTED_USERS = 4;
+    private static final double RATING_THRESHOLD = 0.1;
+    //expected predictions
+    //contains additional padding of 0 on first line and column,
+    //since userIDs and itemIDs start from 1 instead of 0
+    private final double[][] expectedPredictions = {{0, 0, 0, 0, 0, 0, 0 },
+        {0, 0, 0.333, 0, 0.333, 2.5, 0.333 },
+        {0, 0, 1, 0, 1, 0, 1 },
+        {0, 0.944, 0, 0, 3, 1, 0 },
+        {0, 1.888, 0, 0, 0, 2.0, 0 }};
+
+    /**
+     * Setup the recommender system using the UserSimilarityAlgorithm.
+     * @throws Exception in case the initialization fails.
+     */
+    @Before
+    public void setUp() throws Exception {
+        movieRecSys = new MovieRecommenderSystem();
+        boolean success = movieRecSys.readData("basic/usersAccuracy2.dat",
+                "basic/moviesAccuracy2.dat", "basic/ratingsAccuracy2.dat");
+
+        assertTrue(success);
+
+        itemSimilarityAlgorithm = new ItemSimilarityAlgorithm();
+        movieRecSys.addAlgorithm(itemSimilarityAlgorithm);
+
+        movieRecSys.update();
+    }
+
+    /**
+     * Accuracy test.
+     */
+    @Test
+    public void accuracyTest() {
+        for (int i = 1; i < NUMBER_OF_EXPECTED_USERS + 1; i++) {
+            User u = movieRecSys.getUserById(i);
+            assertNotNull(u);
+            Set<Recommendation> recommendations = movieRecSys
+                    .getRecommendations(u, itemSimilarityAlgorithm);
+            assertNotNull(recommendations);
+            assertTrue(recommendations.size() != 0);
+            Integer userID = new Integer(i);
+            for (Recommendation recommendation : recommendations) {
+                System.out.println("rec " + recommendation);
+                int itemID = recommendation.getItem().getId();
+                assertTrue(Math.abs(recommendation.getRating()
+                       - expectedPredictions[userID][itemID])
+                       < RATING_THRESHOLD);
+            }
+        }
+    }
+}

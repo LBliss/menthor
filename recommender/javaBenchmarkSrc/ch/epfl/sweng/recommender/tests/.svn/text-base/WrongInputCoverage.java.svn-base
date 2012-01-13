@@ -1,0 +1,16 @@
+package ch.epfl.sweng.recommender.tests;
+
+import static org.junit.Assert.assertFalse;
+
+import org.junit.Test;
+
+import ch.epfl.sweng.recommender.movie.MovieRecommenderSystem;
+
+public class WrongInputCoverage {
+    @Test
+    public void test() {
+    	for (int i = 1; i <= 7; i++) {
+    		assertFalse(new MovieRecommenderSystem().readData("wrongDataSets/u" + i + ".dat", "wrongDataSets/m" + i + ".dat", "wrongDataSets/r" + i + ".dat"));
+		}
+    }
+}

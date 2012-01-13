@@ -1,0 +1,21 @@
+package ch.epfl.sweng.recommender.tests;
+
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
+/**
+ * Test suite - use this to run all tests.
+ */
+@RunWith(Suite.class)
+@SuiteClasses({
+	BasicTest.class,
+    UserSimilarityTest.class,
+    ItemSimilarityTest.class,
+    MovieCoverage.class,
+    MovieUserCoverage.class,
+    WrongInputCoverage.class,
+    AdditionalCoverage.class,
+    })
+public class AllTests {
+
+}
