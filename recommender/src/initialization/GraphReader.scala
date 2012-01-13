@@ -48,7 +48,7 @@ object GraphReader {
     val size = (userSize + itemMap.size)
     var userCount = 0d
     var itemCount = 0d
-    val itemIter = itemMap.values.iterator
+    val itemIter = scala.util.Random.shuffle(itemMap.values).iterator
     val userIter = userList.iterator
     for (i <- 0 until size) {
       if(userCount/userSize >= itemCount/itemSize) {

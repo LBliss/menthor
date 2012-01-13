@@ -109,7 +109,7 @@ class Graph[Data] extends Actor {
           var i = 1
           while ((numIterations == 0 || i <= numIterations) && !shouldFinish) {
             i += 1
-            
+            val tmp = System.currentTimeMillis // Time measurement.
             if (!crunchResult.isEmpty)
               for (w <- workers) { // go to next superstep
                 w ! CrunchResult(crunchResult.get)
@@ -142,6 +142,7 @@ class Graph[Data] extends Actor {
                   //if ((numDone % (numTotal / 20)) == 0)
                   //  print("#")
               }
+              println("Substep n°: " + (i-1) + " ; TIME = " + (System.currentTimeMillis - tmp));
             }
             //println(".")
 
