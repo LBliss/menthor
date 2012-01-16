@@ -14,7 +14,7 @@ case class ItemVertex(itemID: ItemID) extends Vertex[DataWrapper]("i" + itemID, 
        */
       List()
     } then {
-      val tmp = System.currentTimeMillis // Time measurement.
+//      val tmp = System.currentTimeMillis // Time measurement.
 
       /*
        * The most important substep, two phases:
@@ -46,8 +46,6 @@ case class ItemVertex(itemID: ItemID) extends Vertex[DataWrapper]("i" + itemID, 
           case _ => sys.error("Internal error")
         }
       }
-//      time_itemSubstepData += stopTimer // Time measurement.
-//      startTimer // Time measurement.
 
       /*
        * Formula used to compute the pairwise similarity.
@@ -85,7 +83,7 @@ case class ItemVertex(itemID: ItemID) extends Vertex[DataWrapper]("i" + itemID, 
        */
       value = Similarities(map)
 
-      time_itemSubstepSimilarity += (System.currentTimeMillis - tmp) // Time measurement.
+//      time_itemSubstepSimilarity += (System.currentTimeMillis - tmp) // Time measurement.
 //      
 //      count += 1 // Progress measurement.
 //      progression += (numberOfItems - itemID) // Progress measurement.

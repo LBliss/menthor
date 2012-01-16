@@ -34,11 +34,6 @@ object Main {
   def main(args: Array[String]): Unit = {
         println("Getting started !")
 //        makeDataset
-//        0 / 0 // XD
-//        println("sleepy");
-//        Thread.sleep(3000)
-//        println("notanymore!");
-//        val parsedData = Parser(new File("dataset_test1.dat"))
         val parsedData = Parser(new File(args(0)))
         val graph = GraphReader(parsedData)
 //        GraphReader.printGraph(graph)
@@ -47,8 +42,8 @@ object Main {
         val time = System.currentTimeMillis
         graph.iterate(4)
         graph.terminate()
-        println("SubstepTwo: " + time_itemSubstepSimilarity)
-        println("StepThree: " + time_itemSubstepData)
+//        println("SubstepTwo: " + time_itemSubstepSimilarity)
+//        println("StepThree: " + time_itemSubstepData)
         println("Total time of the algorithm: " + (System.currentTimeMillis - time) + "ms.")
 //        println("Total of empty recommandations list: " + numberOfEmptyRecommandations)
         println("Finished !")

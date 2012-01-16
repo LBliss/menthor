@@ -16,8 +16,8 @@ package object algorithm {
 //  var numberOfEmptyRecommandations = 0
   
   // Used to do some time measurement.
-  var time_itemSubstepData = 0l
-  var time_itemSubstepSimilarity = 0l
+//  var time_itemSubstepData = 0l
+//  var time_itemSubstepSimilarity = 0l
   
   // Number of items in each user that will be considered to find the recommended items.
   val THRESHOLD_nFavoriteItems = 10000
