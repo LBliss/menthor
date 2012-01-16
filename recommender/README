@@ -1,8 +1,0 @@
-To build the project, simply clone the recommender branch and compile with:
-scalac -d bin src/*/*.scala
-
-To execute the project with the mod5_342k.dat dataset use:
-scala -cp bin main.Main datasets/mod5_342k.dat
-
-The options -Dactors.corePoolSize=X -Dactors.maxPoolSize=X can be used to set the number of cores, where #Cores = X - 1.
-You can find more information in our project report
