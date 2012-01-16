@@ -78,7 +78,7 @@ public class ParallelItemSimilarityAlgorithm implements RecommenderAlgorithm {
         similarities = new ConcurrentHashMap<Item, List<Pair<Item, Double>>>();
         final Item[] itemsArray = items.toArray(new Item[0]);
         for (Item item : itemsArray) {
-            similarities.put(item, Collections.synchronizedList(new  ArrayList<Pair<Item, Double>>()));
+            similarities.put(item, Collections.synchronizedList(new ArrayList<Pair<Item, Double>>()));
         }
         
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
