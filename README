@@ -1,1 +1,13 @@
-"TODO: Write a README" 
+To build the project, simply clone the recommender branch and compile with:
+
+scalac -d bin src/*/*.scala
+
+To run:
+
+scala -cp bin main.Main <dataset_path>
+
+<dataset_path> is something like dataset_mod5_342k.dat
+
+The options -Dactors.corePoolSize=X -Dactors.maxPoolSize=X can be used to set the number of cores use to X-1 (X=3 means 2 cores)
+
+You can find more information in our project report
